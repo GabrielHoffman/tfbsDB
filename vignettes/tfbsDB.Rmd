@@ -1,0 +1,76 @@
+---
+title: "tfbsDB: Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO"
+author: "[Gabriel Hoffman](http://gabrielhoffman.github.io)"
+date: "`r format(Sys.Date(), '%m/%d/%Y')`"
+abstract: > 
+  Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO
+  tfbsDB v`r packageVersion("tfbsDB")`<br> <br> 
+
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    toc_depth: 3
+    fig_width: 5
+bibliography: library.bib
+vignette: >
+  %\VignetteIndexEntry{tfbsDB: Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  %\usepackage[utf8]{inputenc}
+---
+
+<!---
+cd /Users/gabrielhoffman/workspace/repos/tfbsDB
+R
+library('knitr')
+rmarkdown::render('tfbsDB/vignettes/tfbsDB.Rmd')
+
+# documentation
+LOCATION=/Users/gabrielhoffman/workspace/repos/tfbsDB
+rm -f ${LOCATION}/man/*.Rd
+Rscript -e "library(roxygen2); roxygenise('${LOCATION}')"; 
+
+R CMD build tfbsDB
+
+R CMD INSTALL tfbsDB
+
+R CMD check tfbsDB
+
+R CMD BiocCheck tfbsDB
+
+--->
+
+```{r setup, echo=FALSE, results="hide"}
+knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
+                      dev="png",
+                      message=FALSE, error=FALSE, warning=TRUE)
+options(width=100)
+```	
+
+
+```{r tfbs_Example}
+library(GenomicRanges)
+library(tfbsDB)
+
+bedFile = "~/Downloads/motifs_fimo_search_small.bed.gz"
+# bedFile = '/sc/orga/scratch/hoffmg01/tfbsDB/fimo_analysis/motifs_fimo_search_small.bed.gz'
+grQuery = GRanges("chr9", IRanges(10000, 10150))
+
+gr = readTFBSdb( bedFile, grQuery )
+
+plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+
+plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+```
+
+
+
+
+# Session info
+```{r sessionInfo}
+sessionInfo()
+```
+
+# References
+

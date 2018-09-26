@@ -1,0 +1,31 @@
+Package: tfbsDB
+Type: Package
+Title: Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO
+Version: 0.99
+Date: 2018-9-24
+Author: Gabriel E. Hoffman
+Maintainer: Gabriel E. Hoffman <gabriel.hoffman@mssm.edu>
+Description: Store and plot TFBS sites from HOCOMOCO v11 scored with FIMO. Read TFBS scores as GRanges and create plots compatible with gbio.
+VignetteBuilder: knitr
+License: GPL (>= 2)
+biocViews: 
+    Software
+Suggests:
+    BiocStyle,
+    knitr,
+    rmarkdown,
+Depends:
+	ggbio,
+    ggplot2,
+    GenomicRanges,
+    Biobase,
+    methods
+Imports:
+    rtracklayer,
+    foreach,
+    S4Vectors,
+    grDevices,
+    graphics,
+    utils,
+    stats
+RoxygenNote: 6.1.0
