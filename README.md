@@ -9,8 +9,8 @@
 	Databases from MEME website:
 	http://meme-suite.org/meme-software/Databases/motifs/motif_databases.12.18.tgz
 
-	HOCOMOCO v11: HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
-    CIS-BP v1.02: CIS-BP/Homo_sapiens.meme
+	- HOCOMOCO v11: HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+    -CIS-BP v1.02: CIS-BP/Homo_sapiens.meme
 
  2) Get genome by chromosomes
 
