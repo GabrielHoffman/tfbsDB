@@ -31,6 +31,9 @@ LOCATION=/Users/gabrielhoffman/workspace/repos/tfbsDB
 rm -f ${LOCATION}/man/*.Rd
 Rscript -e "library(roxygen2); roxygenise('${LOCATION}')"; 
 
+library(roxygen2); 
+roxygenise('/Users/gabrielhoffman/workspace/repos/tfbsDB')
+
 R CMD build tfbsDB
 
 R CMD INSTALL tfbsDB

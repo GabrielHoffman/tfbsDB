@@ -13,6 +13,9 @@ mergeOverlapping(x, y, minfrac = 0.05)
 
 \item{minfrac}{minimum overlap between to windows to merge entries}
 }
+\value{
+non-redundant set of intervals as GRanges
+}
 \description{
 Merge adjacent GRanges entries that overlap by at least minfrac
 }

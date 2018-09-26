@@ -28,8 +28,6 @@
     out
 }
 
-# @import rtracklayer foreach S4Vectors grDevices graphics utils stats
-
 
 
 
@@ -39,8 +37,11 @@
 #'
 #' @param bedFile BED file that is bgzipped and tabix'd
 #' @param grQuery GRange object of query interval
-#' @param maxP maximum p-value of TFBS returned
+#' @param maxP maximum p-value of TFBS returned 
+#' @return GRange of TFBS locations in p-values are scores
 #' @export
+#' @import ggplot2 foreach grDevices graphics utils stats
+#' @importFrom rtracklayer import
 readTFBSdb = function( bedFile, grQuery, maxP=1e-4){
     gr = rtracklayer::import( bedFile, which=grQuery)
     if( length(gr) > 0){
@@ -57,6 +58,8 @@ readTFBSdb = function( bedFile, grQuery, maxP=1e-4){
 #' @param x GRange object 
 #' @param y GRange object 
 #' @param minfrac minimum overlap between to windows to merge entries
+#' @importFrom GenomicRanges granges findOverlaps width pintersect reduce 
+#' @return non-redundant set of intervals as GRanges
 mergeOverlapping = function(x, y, minfrac=0.05) {
     x <- granges(x)
     y <- granges(y)
@@ -78,8 +81,11 @@ mergeOverlapping = function(x, y, minfrac=0.05) {
 #' @param gr GRange object of TFBS 
 #' @param minfrac minimum overlap between to windows to merge TFBS's
 #' @param fxn score of merged interval is the assigned as fxn(score(.)) of overlapping intervals
+#' @importFrom GenomicRanges findOverlaps score
+#' @return non-redundant set of intervals as GRanges
 merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 
+    tfid = ''
     foreach( tfid = unique(gr$tf), .combine=c ) %do% {
         
         # original queries coresponding to tf
@@ -91,7 +97,7 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 
         # for each entry in b, get the best score of intervals in a that overlap with it
         ovlp = findOverlaps(b, a)
-        score(b) = sapply( unique(queryHits(ovlp)), function(x) fxn(score(a)[x]))
+        b$score = sapply( unique(queryHits(ovlp)), function(x) fxn(score(a)[x]))
         b
     }
 }
@@ -109,8 +115,11 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' @param segmentColor color of TFBS segments
 #' @param textColor color of TFBS text labels
 #' @param colorByP color segments by -log10(p) of motif match
-#' @param gradientRange ranges of values for colors when colorByP is TRUE  
+#' @param gradientRange ranges of values for colors when colorByP is TRUE   
+#' @return plot as ggbio object 
 #' @export
+#' @importFrom ggbio autoplot scale_x_sequnit
+#' @importFrom GenomicRanges GRanges seqnames
 plotTFBSdb = function( gr, xlim=c(start(gr), end(gr)), aspect.ratio=0.1, tf_text_size=6, merge_tfbs=TRUE, merge_min_frac=0.05, segmentColor="lightblue", textColor="black", colorByP=FALSE, gradientRange=c(4,10) ){
 
     if( length(table(as.character(gr@seqnames))) > 1){

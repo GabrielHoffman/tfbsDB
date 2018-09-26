@@ -30,6 +30,9 @@ plotTFBSdb(gr, xlim = c(start(gr), end(gr)), aspect.ratio = 0.1,
 
 \item{gradientRange}{ranges of values for colors when colorByP is TRUE}
 }
+\value{
+plot as ggbio object
+}
 \description{
 Produce ggbio plot that ca be combined with others
 }

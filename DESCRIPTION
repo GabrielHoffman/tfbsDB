@@ -15,15 +15,14 @@ Suggests:
     knitr,
     rmarkdown,
 Depends:
-	ggbio,
-    ggplot2,
-    GenomicRanges,
     Biobase,
     methods
 Imports:
+    ggbio, 
+    ggplot2, 
     rtracklayer,
+    GenomicRanges, 
     foreach,
-    S4Vectors,
     grDevices,
     graphics,
     utils,

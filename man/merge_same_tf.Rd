@@ -13,6 +13,9 @@ merge_same_tf(gr, minfrac = 0.05, fxn = min)
 
 \item{fxn}{score of merged interval is the assigned as fxn(score(.)) of overlapping intervals}
 }
+\value{
+non-redundant set of intervals as GRanges
+}
 \description{
 Merge adjacent TFBS that overlap by at least minfrac
 }

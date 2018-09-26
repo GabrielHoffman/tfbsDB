@@ -13,6 +13,9 @@ readTFBSdb(bedFile, grQuery, maxP = 1e-04)
 
 \item{maxP}{maximum p-value of TFBS returned}
 }
+\value{
+GRange of TFBS locations in p-values are scores
+}
 \description{
 Read BED file of TFBS scores into GRange object
 }
