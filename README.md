@@ -28,7 +28,7 @@
 
 ### shell code to score motifs and create single BED file
 This is designed to run on the Sinai cluster, but is easy to change
-```
+``` bash
 module load lsf bedops/2.4.20 tabix
 
 DIR=/sc/orga/scratch/hoffmg01/tfbsDB
