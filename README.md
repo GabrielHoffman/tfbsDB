@@ -126,6 +126,8 @@ do
 	echo "cat $GFF | gff2starch - > $STRCH" >> $OUTDIR/src/convert_gff_to_starch.sh
 done
 
+# combine all starh files
+# this is much faster then combining the BED files directly
 cat $OUTDIR/src/convert_gff_to_starch.sh | parallel -P60
 
 # concatenate startch files
