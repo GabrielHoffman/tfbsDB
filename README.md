@@ -151,52 +151,6 @@ zcat $OUTDIR/motifs_fimo_search.bed.gz | tr ';' '\t' | awk -vOFS="\t" '{print $1
 tabix -fp bed $OUTDIR/motifs_fimo_search_small.bed.gz  
 ```
 
-### R code to parse GRanges
-``` R
-library(rtracklayer)
-library(GenomicRanges)
-
-readTFBSdb = function( bedFile, grQuery){
-	gr = rtracklayer::import( bedFile, which=grQuery)
-	gr$tf = sapply(strsplit(gr$name, '_'), function(x) x[1])
-	gr$quality = sapply(strsplit(gr$name, '\\.'), function(x) gsub("^(\\S).*$", "\\1", x[4]))
-	gr
-}
-
-bedFile = "motifs_fimo_search_small.bed.gz"
-grQuery = GRanges("chr9", IRanges(0, 1214000))
-
-gr = readTFBSdb( bedFile, grQuery )
-```
-
-module unload R
-module load R/3.2.3 htslib/1.9
-R
-
-suppressPackageStartupMessages(library(ggbio))
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(gridExtra))
-suppressPackageStartupMessages(library(GenomicRanges))
-suppressPackageStartupMessages(library(rtracklayer))
-suppressPackageStartupMessages(library(foreach))
-
-
-# bedFile = "~/Downloads/motifs_fimo_search_small.bed.gz"
-bedFile = '/sc/orga/scratch/hoffmg01/tfbsDB/fimo_analysis/motifs_fimo_search_small.bed.gz'
-grQuery = GRanges("chr9", IRanges(10000, 10150))
-
-gr = readTFBSdb( bedFile, grQuery )
-
-
-file = "~/www/dream/test.png"
-
-png( file, width=1300)
-plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
-plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
-dev.off()
-
-
-
 
 
 
