@@ -148,7 +148,7 @@ tabix -fp bed $OUTDIR/motifs_fimo_search_small.bed.gz
 library(rtracklayer)
 library(GenomicRanges)
 
-readMotifBed = function( bedFile, grQuery){
+readTFBSdb = function( bedFile, grQuery){
 	gr = import( bedFile, which=grQuery)
 	gr$tf = sapply(strsplit(gr$name, '_'), function(x) x[1])
 	gr$quality = sapply(strsplit(gr$name, '\\.'), function(x) gsub("^(\\S).*$", "\\1", x[4]))
