@@ -13,13 +13,11 @@ biocViews:
 Suggests:
     BiocStyle,
     knitr,
-    rmarkdown,
-Depends:
-    Biobase,
-    methods
+    rmarkdown
 Imports:
     ggbio, 
     ggplot2, 
+    S4Vectors,
     rtracklayer,
     GenomicRanges, 
     foreach,

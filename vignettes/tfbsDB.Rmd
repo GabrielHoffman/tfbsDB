@@ -56,14 +56,16 @@ options(width=100)
 library(GenomicRanges)
 library(tfbsDB)
 
-bedFile = "~/Downloads/motifs_fimo_search_small.bed.gz"
+# bedFile = "~/Downloads/motifs_fimo_search_small.bed.gz"
 # bedFile = '/sc/orga/scratch/hoffmg01/tfbsDB/fimo_analysis/motifs_fimo_search_small.bed.gz'
 grQuery = GRanges("chr9", IRanges(10000, 10150))
 
-gr = readTFBSdb( bedFile, grQuery )
+gr = readTFBSdb( grQuery )
 
+# show TFBS locations
 plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
 
+# color locations by p-value of motif match
 plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
 ```
 

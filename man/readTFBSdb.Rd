@@ -4,12 +4,13 @@
 \alias{readTFBSdb}
 \title{Read BED file of TFBS scores into GRange object}
 \usage{
-readTFBSdb(bedFile, grQuery, maxP = 1e-04)
+readTFBSdb(grQuery, bedFile = file.path(system.file("data", package =
+  "tfbsDB"), "motifs_fimo_search_small.bed.gz"), maxP = 1e-04)
 }
 \arguments{
-\item{bedFile}{BED file that is bgzipped and tabix'd}
-
 \item{grQuery}{GRange object of query interval}
+
+\item{bedFile}{BED file that is bgzipped and tabix'd}
 
 \item{maxP}{maximum p-value of TFBS returned}
 }

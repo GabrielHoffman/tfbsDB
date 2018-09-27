@@ -35,14 +35,16 @@
 #'
 #' Read BED file of TFBS scores into GRange object
 #'
-#' @param bedFile BED file that is bgzipped and tabix'd
 #' @param grQuery GRange object of query interval
+#' @param bedFile BED file that is bgzipped and tabix'd
 #' @param maxP maximum p-value of TFBS returned 
 #' @return GRange of TFBS locations in p-values are scores
 #' @export
 #' @import ggplot2 foreach grDevices graphics utils stats
 #' @importFrom rtracklayer import
-readTFBSdb = function( bedFile, grQuery, maxP=1e-4){
+readTFBSdb = function( grQuery, 
+        bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_search_small.bed.gz"),
+        maxP=1e-4){
     gr = rtracklayer::import( bedFile, which=grQuery)
     if( length(gr) > 0){
         gr$tf = sapply(strsplit(gr$name, '_'), function(x) x[1])
@@ -59,6 +61,7 @@ readTFBSdb = function( bedFile, grQuery, maxP=1e-4){
 #' @param y GRange object 
 #' @param minfrac minimum overlap between to windows to merge entries
 #' @importFrom GenomicRanges granges findOverlaps width pintersect reduce 
+#' @importFrom S4Vectors queryHits subjectHits
 #' @return non-redundant set of intervals as GRanges
 mergeOverlapping = function(x, y, minfrac=0.05) {
     x <- granges(x)
@@ -82,6 +85,7 @@ mergeOverlapping = function(x, y, minfrac=0.05) {
 #' @param minfrac minimum overlap between to windows to merge TFBS's
 #' @param fxn score of merged interval is the assigned as fxn(score(.)) of overlapping intervals
 #' @importFrom GenomicRanges findOverlaps score
+#' @importFrom S4Vectors queryHits subjectHits
 #' @return non-redundant set of intervals as GRanges
 merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 
@@ -145,12 +149,12 @@ plotTFBSdb = function( gr, xlim=c(start(gr), end(gr)), aspect.ratio=0.1, tf_text
 
     if( colorByP ){
 
-        gr$score = pmax(gr$score, 10^-maxGradientValue)
+        gr$score = pmax(gr$score, 10^-max(gradientRange))
 
-        fig = autoplot(gr, aes(fill=-log10(score))) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio)  + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(lim=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_gradientn(colors=c("white", "red"), limits=gradientRange, name="-log10 p") + theme(legend.position="bottom")
+        fig = autoplot(gr, aes(fill=-log10(score))) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio)  + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_gradientn(colors=c("white", "red"), limits=gradientRange, name="-log10 p") + theme(legend.position="bottom")
     }else{
         # make plot
-        fig = autoplot(gr, aes(color="1", fill="1")) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio)  + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(lim=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_manual(values=segmentColor) + theme(legend.position="none")
+        fig = autoplot(gr, aes(color="1", fill="1")) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio)  + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_manual(values=segmentColor) + theme(legend.position="none")
     }
     fig 
 }

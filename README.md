@@ -118,24 +118,26 @@ do
 done
 
 # submit jobs
-ls $OUTDIR/jobs/*.lsf | head | parallel -P1 "bsub < {}; sleep 1"
+ls $OUTDIR/jobs/*.lsf | parallel -P1 "bsub < {}; sleep 1"
 
 # gzip results
-find . -name gff | parallel gzip
-find . -name txt | parallel gzip
-find . -name xml | parallel gzip
-find . -name html | parallel gzip
+# why is this creating empty gz files?????
+# find . -name "*gff" | parallel gzip
+# find . -name "*txt" | parallel gzip
+# find . -name "*xml" | parallel gzip
+# find . -name "*html" | parallel gzip
+# find . -name "*tsv" | parallel gzip
 
-# convert GFF to startch to faster processing
+# convert GFF to starch faster processing
 rm -f $OUTDIR/src/convert_gff_to_starch.sh
-for GFF in $(find $OUTDIR -name fimo.gff.gz)
+for GFF in $(find $OUTDIR -name fimo.gff)
 do
 	STRCH=$(echo $GFF | sed 's/gff$/starch/g')
-	echo "zcat $GFF | gff2starch - > $STRCH" >> $OUTDIR/src/convert_gff_to_starch.sh
+	echo "cat $GFF | gff2starch - > $STRCH" >> $OUTDIR/src/convert_gff_to_starch.sh
 done
 
-# combine all starh files
-# this is much faster then combining the BED files directly
+# combine all starch files
+# this is much faster than combining the BED files directly
 cat $OUTDIR/src/convert_gff_to_starch.sh | parallel -P60
 
 # concatenate startch files
@@ -150,6 +152,9 @@ tabix -fp bed $OUTDIR/motifs_fimo_search.bed.gz
 zcat $OUTDIR/motifs_fimo_search.bed.gz | tr ';' '\t' | awk -vOFS="\t" '{print $1, $2, $3, $4, $13, $6}' | sed 's/pvalue=//g' | bgzip > $OUTDIR/motifs_fimo_search_small.bed.gz 
 tabix -fp bed $OUTDIR/motifs_fimo_search_small.bed.gz  
 ```
+
+
+
 
 
 
