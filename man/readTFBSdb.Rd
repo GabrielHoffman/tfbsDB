@@ -5,18 +5,35 @@
 \title{Read BED file of TFBS scores into GRange object}
 \usage{
 readTFBSdb(grQuery, bedFile = file.path(system.file("data", package =
-  "tfbsDB"), "motifs_fimo_search_small.bed.gz"), maxP = 1e-04)
+  "tfbsDB"), "motifs_fimo_search_small.bed.gz"), maxP = 1e-04,
+  quality = c("A", "B", "C"))
 }
 \arguments{
 \item{grQuery}{GRange object of query interval}
 
-\item{bedFile}{BED file that is bgzipped and tabix'd}
+\item{bedFile}{BED file that is bgzipped and tabix'd. Default is file in tfbsDB package}
 
 \item{maxP}{maximum p-value of TFBS returned}
+
+\item{quality}{each motif has a quality value in c('A', 'B', 'C', 'D').  But default exclude quality D, the lowest quality motifs}
 }
 \value{
-GRange of TFBS locations in p-values are scores
+GRange of TFBS locations where p-values are scores
 }
 \description{
 Read BED file of TFBS scores into GRange object
+}
+\examples{
+library(GenomicRanges)
+library(tfbsDB)
+
+grQuery = GRanges("chr9", IRanges(10000, 10150))
+
+gr = readTFBSdb( grQuery )
+
+plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+
+# color locations by p-value of motif match
+plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+
 }

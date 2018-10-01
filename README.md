@@ -41,6 +41,11 @@ mkdir -p $MOTIFDB
 cd $MOTIFDB
 tar zxvf $MOTIFDB/motif_databases.12.18.tgz -C ../
 
+# get motifs directly from HOCOMOCOv11, 
+# version on the MEME website is outdated
+cd $DIR
+wget http://hocomoco11.autosome.ru/final_bundle/hocomoco11/full/HUMAN/mono/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme 
+
 # get hg19 FASTA by chromosome
 FILE=$MOTIFDB/../genome/chromFa.tar.gz
 mkdir -p $(dirname $FILE)
@@ -63,14 +68,18 @@ FIMO=/hpc/users/hoffmg01/build/meme-5.0.2/src/fimo
 ######################
 FASTA=$MOTIFDB/../genome/hg19.fa
 
-# HOCOMOCOv 11
+# HOCOMOCO v11
+# store --max-stored-scores 10000000 in memory
+# retain matches with p < 1e-5 
+# --no-qvalue because multiple testing burden is wrong
+#	because only a single motif is analysed
 OUT=$OUTDIR/HOCOMOCOv11
 mkdir -p $OUT
-MOTIFS=$MOTIFDB/HUMAN/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
+MOTIFS=$DIR/HOCOMOCOv11_full_HUMAN_mono_meme_format.meme
 for MOTIF in $(grep MOTIF $MOTIFS | cut -f2 -d' ')
 do
 	mkdir -p $OUT/$MOTIF
-	echo "$FIMO -o $OUT/$MOTIF/hg19 --motif $MOTIF $MOTIFS $FASTA" >> ${OUT_SCRIPT}
+	echo "$FIMO -o $OUT/$MOTIF/hg19 --motif $MOTIF --max-stored-scores 10000000 --thresh 1e-5 $MOTIFS $FASTA" >> ${OUT_SCRIPT}
 done
 
 ## CIS-BP
@@ -97,7 +106,6 @@ cat ${OUT_SCRIPT} | while read CMD;
 do
 	ID=$(echo $CMD | cut -f3 -d' ')
 	KEY=$(echo $(basename $(dirname $ID))_$(basename $ID))
-
 	echo '#!/bin/bash' > $OUTDIR/jobs/${KEY}.lsf
 	echo "#BSUB -J fimo_${KEY}
 	#BSUB -P acc_psychencode
@@ -120,46 +128,35 @@ done
 # submit jobs
 ls $OUTDIR/jobs/*.lsf | parallel -P1 "bsub < {}; sleep 1"
 
-# gzip results
-# why is this creating empty gz files?????
-# find . -name "*gff" | parallel gzip
-# find . -name "*txt" | parallel gzip
-# find . -name "*xml" | parallel gzip
-# find . -name "*html" | parallel gzip
-# find . -name "*tsv" | parallel gzip
+# Identify jobs that crashed
+# rerun this manually
+comm -13 <(find $OUTDIR -name fimo.gff | cut -f9 -d'/' | sort) <(ls $OUTDIR/jobs/*.lsf | parallel -P1 basename | sed 's/_hg19.lsf//g' | sort)
 
-# convert GFF to starch faster processing
+# convert GFF to starch for faster processing
 rm -f $OUTDIR/src/convert_gff_to_starch.sh
+rm -f $OUTDIR/src/convert_gff_to_bed.sh
 for GFF in $(find $OUTDIR -name fimo.gff)
 do
 	STRCH=$(echo $GFF | sed 's/gff$/starch/g')
+	BED=$(echo $GFF | sed 's/gff$/bed.gz/g')
 	echo "cat $GFF | gff2starch - > $STRCH" >> $OUTDIR/src/convert_gff_to_starch.sh
+	echo "unstarch $STRCH > $BED" >> $OUTDIR/src/convert_gff_to_bed.sh
 done
 
-# combine all starch files
-# this is much faster than combining the BED files directly
+# convert to starch
 cat $OUTDIR/src/convert_gff_to_starch.sh | parallel -P60
 
-# concatenate startch files
-# faster than default using --bzip2
-starchcat --gzip $OUTDIR/*/*/*/fimo.starch > $OUTDIR/motifs_fimo_search.starch
+# convert startcfh to bed
+cat $OUTDIR/src/convert_gff_to_bed.sh | parallel -P60
 
-# convert to bed
-unstarch $OUTDIR/motifs_fimo_search.starch | bgzip > $OUTDIR/motifs_fimo_search.bed.gz 
-tabix -fp bed $OUTDIR/motifs_fimo_search.bed.gz 
+# merge all bed files
+bedops -u $(find . -name fimo.bed) | bgzip > $OUTDIR/motifs_fimo_search.bed.gz  
 
 # extract only information need in R
-zcat $OUTDIR/motifs_fimo_search.bed.gz | tr ';' '\t' | awk -vOFS="\t" '{print $1, $2, $3, $4, $13, $6}' | sed 's/pvalue=//g' | bgzip > $OUTDIR/motifs_fimo_search_small.bed.gz 
-tabix -fp bed $OUTDIR/motifs_fimo_search_small.bed.gz  
+# chrom, start, end, name, pvalue, strand, qvalue
+zcat $OUTDIR/motifs_fimo_search.bed.gz | tr ';' '\t' | awk -vOFS="\t" '{print $1, $2, $3, $4, $13, $6, $15}' | sed 's/pvalue=//g' | perl -p -i -e "s/-\d+-chr\d+//g" | bgzip > $OUTDIR/motifs_fimo_search_small.bed.gz 
+tabix -fp bed $OUTDIR/motifs_fimo_search_small.bed.gz 
 ```
-
-
-
-
-
-
-
-
-
+Note that qvalue is evaluated per motif
 
 

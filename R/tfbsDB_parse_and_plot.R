@@ -36,21 +36,45 @@
 #' Read BED file of TFBS scores into GRange object
 #'
 #' @param grQuery GRange object of query interval
-#' @param bedFile BED file that is bgzipped and tabix'd
+#' @param bedFile BED file that is bgzipped and tabix'd. Default is file in tfbsDB package
 #' @param maxP maximum p-value of TFBS returned 
-#' @return GRange of TFBS locations in p-values are scores
+#' @param quality each motif has a quality value in c('A', 'B', 'C', 'D').  But default exclude quality D, the lowest quality motifs 
+#' @return GRange of TFBS locations where p-values are scores
 #' @export
 #' @import ggplot2 foreach grDevices graphics utils stats
 #' @importFrom rtracklayer import
+#' @examples
+#' library(GenomicRanges)
+#' library(tfbsDB)
+#' 
+#' grQuery = GRanges("chr9", IRanges(10000, 10150))
+#' 
+#' gr = readTFBSdb( grQuery )
+#' 
+# show TFBS locations
+#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+#' 
+#' # color locations by p-value of motif match
+#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+#' 
 readTFBSdb = function( grQuery, 
         bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_search_small.bed.gz"),
-        maxP=1e-4){
-    gr = rtracklayer::import( bedFile, which=grQuery)
+        maxP=1e-4, 
+        quality=c('A', 'B', 'C')){
+
+    # read file
+    gr = rtracklayer::import( bedFile, which=grQuery, extraCols=c(qvalue="numeric"))
+
     if( length(gr) > 0){
         gr$tf = sapply(strsplit(gr$name, '_'), function(x) x[1])
         gr$quality = sapply(strsplit(gr$name, '\\.'), function(x) gsub("^(\\S).*$", "\\1", x[4]))
     }
-    gr[score(gr) < maxP]
+
+    # remove intervals with a p-value > maxP
+    gr = gr[score(gr) < maxP]
+
+    # remove intervals based on quality
+    gr[gr$quality %in% quality]
 }
 
 #' Merge overlapping GRanges entries
@@ -101,7 +125,20 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 
         # for each entry in b, get the best score of intervals in a that overlap with it
         ovlp = findOverlaps(b, a)
-        b$score = sapply( unique(queryHits(ovlp)), function(x) fxn(score(a)[x]))
+      
+        # set p-value
+        b$score = sapply( unique(queryHits(ovlp)), function(qh){
+            idx = subjectHits(ovlp)[queryHits(ovlp) == qh]
+            fxn(score(a)[idx])
+        } )
+
+        # set q-value, if it exists
+        if( ! is.null( a$qvalue ) ){
+             b$qvalue = sapply( unique(queryHits(ovlp)), function(qh){
+                idx = subjectHits(ovlp)[queryHits(ovlp) == qh]
+                fxn(a$qvalue[idx])
+            } )
+        }
         b
     }
 }
@@ -123,8 +160,22 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' @return plot as ggbio object 
 #' @export
 #' @importFrom ggbio autoplot scale_x_sequnit
-#' @importFrom GenomicRanges GRanges seqnames
-plotTFBSdb = function( gr, xlim=c(start(gr), end(gr)), aspect.ratio=0.1, tf_text_size=6, merge_tfbs=TRUE, merge_min_frac=0.05, segmentColor="lightblue", textColor="black", colorByP=FALSE, gradientRange=c(4,10) ){
+#' @importFrom GenomicRanges GRanges seqnames restrict
+#' @examples
+#' library(GenomicRanges)
+#' library(tfbsDB)
+#' 
+#' grQuery = GRanges("chr9", IRanges(10000, 10150))
+#' 
+#' gr = readTFBSdb( grQuery )
+#' 
+# show TFBS locations
+#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+#' 
+#' # color locations by p-value of motif match
+#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+#' 
+plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), aspect.ratio=0.1, tf_text_size=6, merge_tfbs=TRUE, merge_min_frac=0.05, segmentColor="lightblue", textColor="black", colorByP=FALSE, gradientRange=c(4,10) ){
 
     if( length(table(as.character(gr@seqnames))) > 1){
         stop("Only entries on one chromosome are allow")
@@ -135,26 +186,36 @@ plotTFBSdb = function( gr, xlim=c(start(gr), end(gr)), aspect.ratio=0.1, tf_text
     ovlp = GenomicRanges::findOverlaps(gr, gr_window)
     gr = gr[queryHits(ovlp)]
 
-    # merge overlapping TFBS
-    if( merge_tfbs ){
-        gr = merge_same_tf(gr, merge_min_frac)
-    }
-
-    # get segment location in order to write text
-    fig = autoplot(gr)
-    g = ggplot_build(fig)
-    g2 = with(g$data[[2]], GRanges(seqnames(gr)@values[1], IRanges(xmin,xmax), y=(ymin+ymax)/2))
-    idx = 1:length(gr)
-    g2$name = gr$tf[idx]
-
-    if( colorByP ){
-
-        gr$score = pmax(gr$score, 10^-max(gradientRange))
-
-        fig = autoplot(gr, aes(fill=-log10(score))) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio)  + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_gradientn(colors=c("white", "red"), limits=gradientRange, name="-log10 p") + theme(legend.position="bottom")
+    # if there are no TFBS to plot
+    if( length(gr) == 0 ){
+        gr_empty = GRanges(seqnames(gr_window), IRanges(0, 0))
+        fig = autoplot(gr_empty) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio) + scale_x_continuous(limits=xlim, expand=c(0,0)) 
     }else{
-        # make plot
-        fig = autoplot(gr, aes(color="1", fill="1")) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio)  + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_manual(values=segmentColor) + theme(legend.position="none")
+
+        # merge overlapping TFBS
+        if( merge_tfbs ){
+            gr = merge_same_tf(gr, merge_min_frac)
+        }
+
+        # truncate intervals to match xlim
+        gr = restrict(gr, start=xlim[1], end=xlim[2])
+
+        # get segment location in order to write text
+        fig = autoplot(gr)
+        g = ggplot_build(fig@ggplot)
+        g2 = with(g$data[[2]], GRanges(seqnames(gr)@values[1], IRanges(xmin,xmax), y=(ymin+ymax)/2))
+        idx = 1:length(gr)
+        g2$name = gr$tf[idx]
+
+        if( colorByP ){
+
+            gr$score = pmax(gr$score, 10^-max(gradientRange))
+
+            fig = autoplot(gr, aes(fill=-log10(score))) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio) + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_gradientn(colors=c("white", "red"), limits=gradientRange, name="-log10 p") + theme(legend.position="bottom")
+        }else{
+            # make plot
+            fig = autoplot(gr, aes(color="1", fill="1")) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio) + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_manual(values=segmentColor) + theme(legend.position="none")
+        }
     }
     fig 
 }

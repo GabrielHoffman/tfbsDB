@@ -4,10 +4,10 @@
 \alias{plotTFBSdb}
 \title{Plot TFBS in window}
 \usage{
-plotTFBSdb(gr, xlim = c(start(gr), end(gr)), aspect.ratio = 0.1,
-  tf_text_size = 6, merge_tfbs = TRUE, merge_min_frac = 0.05,
-  segmentColor = "lightblue", textColor = "black", colorByP = FALSE,
-  gradientRange = c(4, 10))
+plotTFBSdb(gr, xlim = c(min(start(gr)), max(end(gr))),
+  aspect.ratio = 0.1, tf_text_size = 6, merge_tfbs = TRUE,
+  merge_min_frac = 0.05, segmentColor = "lightblue",
+  textColor = "black", colorByP = FALSE, gradientRange = c(4, 10))
 }
 \arguments{
 \item{gr}{GRange object of TFBS}
@@ -35,4 +35,18 @@ plot as ggbio object
 }
 \description{
 Produce ggbio plot that ca be combined with others
+}
+\examples{
+library(GenomicRanges)
+library(tfbsDB)
+
+grQuery = GRanges("chr9", IRanges(10000, 10150))
+
+gr = readTFBSdb( grQuery )
+
+plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+
+# color locations by p-value of motif match
+plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+
 }
