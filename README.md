@@ -4,6 +4,12 @@
 ##### Icahn School of Medicine at Mount Sinai
 ##### September 25, 2018
 
+## Install package
+```R
+devtools::install_github("GabrielHoffman/tfbsDB")
+```
+
+## Generate TFBS annotation files
  1) Obtain motifs in MEME format from Cis-BP v1.02 and HOCOMOCO v11
 
 	Databases from MEME website:
