@@ -5,16 +5,14 @@
 \title{Plot TFBS in window}
 \usage{
 plotTFBSdb(gr, xlim = c(min(start(gr)), max(end(gr))),
-  aspect.ratio = 0.1, tf_text_size = 6, merge_tfbs = TRUE,
-  merge_min_frac = 0.05, segmentColor = "lightblue",
-  textColor = "black", colorByP = FALSE, gradientRange = c(4, 10))
+  tf_text_size = 6, merge_tfbs = TRUE, merge_min_frac = 0.05,
+  segmentColor = "lightblue", textColor = "black", colorByP = FALSE,
+  gradientRange = c(4, 10))
 }
 \arguments{
 \item{gr}{GRange object of TFBS}
 
 \item{xlim}{range of window in genome coordinates}
-
-\item{aspect.ratio}{aspect ratio of plot}
 
 \item{tf_text_size}{size of TF text label}
 
@@ -40,13 +38,19 @@ Produce ggbio plot that ca be combined with others
 library(GenomicRanges)
 library(tfbsDB)
 
-grQuery = GRanges("chr9", IRanges(10000, 10150))
+# range of TFBS to be loaded from file
+grQuery = GRanges("chr1", IRanges(10280, 10410))
 
-gr = readTFBSdb( grQuery )
+# example data from package
+bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 
-plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+# read from file
+gr = readTFBSdb( grQuery, bedFile )
+
+# show TFBS locations
+plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
 
 # color locations by p-value of motif match
-plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
 
 }

@@ -36,7 +36,7 @@
 #' Read BED file of TFBS scores into GRange object
 #'
 #' @param grQuery GRange object of query interval
-#' @param bedFile BED file that is bgzipped and tabix'd. Default is file in tfbsDB package
+#' @param bedFile BED file that is bgzipped and tabix'd. 
 #' @param maxP maximum p-value of TFBS returned 
 #' @param quality each motif has a quality value in c('A', 'B', 'C', 'D').  But default exclude quality D, the lowest quality motifs 
 #' @return GRange of TFBS locations where p-values are scores
@@ -47,20 +47,22 @@
 #' library(GenomicRanges)
 #' library(tfbsDB)
 #' 
-#' grQuery = GRanges("chr9", IRanges(10000, 10150))
+#' # range of TFBS to be loaded from file
+#' grQuery = GRanges("chr1", IRanges(10280, 10410))
 #' 
-#' gr = readTFBSdb( grQuery )
+#' # example data from package
+#' bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 #' 
-# show TFBS locations
-#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+#' # read from file
+#' gr = readTFBSdb( grQuery, bedFile )
+#' 
+#' # show TFBS locations
+#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
 #' 
 #' # color locations by p-value of motif match
-#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
 #' 
-readTFBSdb = function( grQuery, 
-        bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_search_small.bed.gz"),
-        maxP=1e-4, 
-        quality=c('A', 'B', 'C')){
+readTFBSdb = function( grQuery, bedFile, maxP=1e-4, quality=c('A', 'B', 'C')){
 
     # read file
     gr = rtracklayer::import( bedFile, which=grQuery, extraCols=c(qvalue="numeric"))
@@ -149,7 +151,6 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #'
 #' @param gr GRange object of TFBS 
 #' @param xlim range of window in genome coordinates
-#' @param aspect.ratio aspect ratio of plot
 #' @param tf_text_size size of TF text label
 #' @param merge_tfbs should overlapping TFBS from same TF be combined?
 #' @param merge_min_frac minimum overlap between to windows to merge TFBS's
@@ -165,17 +166,22 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' library(GenomicRanges)
 #' library(tfbsDB)
 #' 
-#' grQuery = GRanges("chr9", IRanges(10000, 10150))
+#' # range of TFBS to be loaded from file
+#' grQuery = GRanges("chr1", IRanges(10280, 10410))
 #' 
-#' gr = readTFBSdb( grQuery )
+#' # example data from package
+#' bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 #' 
-# show TFBS locations
-#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+#' # read from file
+#' gr = readTFBSdb( grQuery, bedFile )
+#' 
+#' # show TFBS locations
+#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
 #' 
 #' # color locations by p-value of motif match
-#' plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
-#' 
-plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), aspect.ratio=0.1, tf_text_size=6, merge_tfbs=TRUE, merge_min_frac=0.05, segmentColor="lightblue", textColor="black", colorByP=FALSE, gradientRange=c(4,10) ){
+#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
+#'
+plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), tf_text_size=6, merge_tfbs=TRUE, merge_min_frac=0.05, segmentColor="lightblue", textColor="black", colorByP=FALSE, gradientRange=c(4,10) ){
 
     if( length(table(as.character(gr@seqnames))) > 1){
         stop("Only entries on one chromosome are allow")
@@ -189,7 +195,7 @@ plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), aspect.ratio=0.
     # if there are no TFBS to plot
     if( length(gr) == 0 ){
         gr_empty = GRanges(seqnames(gr_window), IRanges(0, 0))
-        fig = autoplot(gr_empty) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio) + scale_x_continuous(limits=xlim, expand=c(0,0)) 
+        fig = autoplot(gr_empty) + theme_bw(20) + scale_x_sequnit("bp") #+ scale_x_continuous(limits=xlim) # + theme(aspect.ratio=aspect.ratio) , expand=c(0,0)
     }else{
 
         # merge overlapping TFBS
@@ -211,10 +217,10 @@ plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), aspect.ratio=0.
 
             gr$score = pmax(gr$score, 10^-max(gradientRange))
 
-            fig = autoplot(gr, aes(fill=-log10(score))) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio) + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_gradientn(colors=c("white", "red"), limits=gradientRange, name="-log10 p") + theme(legend.position="bottom")
+            fig = autoplot(gr, aes(fill=-log10(score))) + theme_bw(20) + scale_x_sequnit("bp") + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_color_manual(values=segmentColor) + scale_fill_gradientn(colors=c("white", "red"), limits=gradientRange, name="-log10 p") + theme(legend.position="bottom") + scale_x_continuous(limits=xlim) 
         }else{
             # make plot
-            fig = autoplot(gr, aes(color="1", fill="1")) + theme_bw(20) + scale_x_sequnit("bp") + theme(aspect.ratio=aspect.ratio) + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_x_continuous(limits=xlim, expand=c(0,0)) + scale_color_manual(values=segmentColor) + scale_fill_manual(values=segmentColor) + theme(legend.position="none")
+            fig = autoplot(gr, aes(color="1", fill="1")) + theme_bw(20) + scale_x_sequnit("bp") + geom_text(data=as.data.frame(g2), aes(x=(start+end)/2, y=y, label=name), size=tf_text_size, color=textColor ) + scale_color_manual(values=segmentColor) + scale_fill_manual(values=segmentColor) + theme(legend.position="none") + scale_x_continuous(limits=xlim) 
         }
     }
     fig 

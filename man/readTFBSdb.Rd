@@ -4,14 +4,12 @@
 \alias{readTFBSdb}
 \title{Read BED file of TFBS scores into GRange object}
 \usage{
-readTFBSdb(grQuery, bedFile = file.path(system.file("data", package =
-  "tfbsDB"), "motifs_fimo_search_small.bed.gz"), maxP = 1e-04,
-  quality = c("A", "B", "C"))
+readTFBSdb(grQuery, bedFile, maxP = 1e-04, quality = c("A", "B", "C"))
 }
 \arguments{
 \item{grQuery}{GRange object of query interval}
 
-\item{bedFile}{BED file that is bgzipped and tabix'd. Default is file in tfbsDB package}
+\item{bedFile}{BED file that is bgzipped and tabix'd.}
 
 \item{maxP}{maximum p-value of TFBS returned}
 
@@ -27,13 +25,19 @@ Read BED file of TFBS scores into GRange object
 library(GenomicRanges)
 library(tfbsDB)
 
-grQuery = GRanges("chr9", IRanges(10000, 10150))
+# range of TFBS to be loaded from file
+grQuery = GRanges("chr1", IRanges(10280, 10410))
 
-gr = readTFBSdb( grQuery )
+# example data from package
+bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 
-plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=FALSE)
+# read from file
+gr = readTFBSdb( grQuery, bedFile )
+
+# show TFBS locations
+plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
 
 # color locations by p-value of motif match
-plotTFBSdb( gr, xlim=c(10000, 10150), colorByP=TRUE)
+plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
 
 }
