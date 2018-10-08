@@ -96,7 +96,7 @@ figTFBS = plotTFBSdb( gr[1:10], xlim, colorByP=FALSE, tf_text_size=3)
 # Combine
 tracks( Genes = p.txdb, TFBS = figTFBS, label.bg.fill="navy", label.text.color="white", 
   heights=c( 1, .4), padding = unit(-1.9, "lines"), label.width = unit(1.5, "lines"), 
-  xlab.height = unit(1, "lines"), xlim=xlim) + scale_x_sequnit("bp")
+  xlab.height = unit(1, "lines"), xlim=xlim)  + theme(axis.text.x =element_text(size=9)) +  scale_x_sequnit("bp")
 ```
 
 
