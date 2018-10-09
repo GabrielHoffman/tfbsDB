@@ -27,7 +27,7 @@ library(tfbsDB)
 grQuery = GRanges("chr1", IRanges(10280, 10410))
 
 # example data from package
-bedFile = file.path(system.file("inst/extdata/", package = "tfbsDB"), "JASPAR2018_hg19_small.bed.gz")
+bedFile = file.path(system.file("extdata/", package = "tfbsDB"), "JASPAR2018_hg19_example.bed.gz")
 
 # read from file
 gr = readJaspar( grQuery, bedFile )
