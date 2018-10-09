@@ -66,10 +66,10 @@ bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmapl
 gr = readTFBSdb( grQuery, bedFile )
 
 # show TFBS locations
-plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
+plotTFBSdb( gr )
 
 # color locations by p-value of motif match
-plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
+plotTFBSdb( gr, colorByP=TRUE)
 ```
 
 Plot genes and TFBS

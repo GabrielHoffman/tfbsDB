@@ -57,10 +57,10 @@
 #' gr = readTFBSdb( grQuery, bedFile )
 #' 
 #' # show TFBS locations
-#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
+#' plotTFBSdb( gr )
 #' 
 #' # color locations by p-value of motif match
-#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
+#' plotTFBSdb( gr, colorByP=TRUE)
 #' 
 readTFBSdb = function( grQuery, bedFile, maxP=1e-4, quality=c('A', 'B', 'C')){
 
@@ -162,6 +162,7 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' @export
 #' @importFrom ggbio autoplot scale_x_sequnit
 #' @importFrom GenomicRanges GRanges seqnames restrict
+#' @importFrom BiocGenerics start end
 #' @examples
 #' library(GenomicRanges)
 #' library(tfbsDB)
@@ -176,10 +177,10 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' gr = readTFBSdb( grQuery, bedFile )
 #' 
 #' # show TFBS locations
-#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=FALSE)
+#' plotTFBSdb( gr )
 #' 
 #' # color locations by p-value of motif match
-#' plotTFBSdb( gr, xlim=c(10280, 10410), colorByP=TRUE)
+#' plotTFBSdb( gr, colorByP=TRUE)
 #'
 plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), tf_text_size=6, merge_tfbs=TRUE, merge_min_frac=0.05, segmentColor="lightblue", textColor="black", colorByP=FALSE, gradientRange=c(4,10) ){
 
@@ -225,3 +226,8 @@ plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), tf_text_size=6,
     }
     fig 
 }
+
+ # plotTFBSdb( gr,  colorByP=FALSE)
+
+
+
