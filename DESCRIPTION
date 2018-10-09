@@ -20,6 +20,7 @@ Imports:
     S4Vectors,
     rtracklayer,
     GenomicRanges, 
+    BiocGenerics,
     foreach,
     grDevices,
     graphics,

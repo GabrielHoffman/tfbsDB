@@ -51,7 +51,7 @@
 #' grQuery = GRanges("chr1", IRanges(10280, 10410))
 #' 
 #' # example data from package
-#' bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
+#' bedFile = file.path(system.file("inst/extdata/", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 #' 
 #' # read from file
 #' gr = readTFBSdb( grQuery, bedFile )
@@ -76,8 +76,50 @@ readTFBSdb = function( grQuery, bedFile, maxP=1e-4, quality=c('A', 'B', 'C')){
     gr = gr[score(gr) < maxP]
 
     # remove intervals based on quality
-    gr[gr$quality %in% quality]
+    gr[gr$quality %in% quality]  
 }
+
+#' Read BED file of TFBS scores from JASPAR into GRange object
+#'
+#' Read BED file of TFBS scores from JASPAR into GRange object
+#'
+#' @param grQuery GRange object of query interval
+#' @param bedFile BED file that is bgzipped and tabix'd. 
+#' @param maxP maximum p-value of TFBS returned. score corresponds to p-value: 200 -> 10e-2; 300 -> 10e-3 
+#' @return GRange of TFBS locations where scores are transformed p-values
+#' @export
+#' @import ggplot2 foreach grDevices graphics utils stats
+#' @importFrom rtracklayer import
+#' @examples
+#' library(GenomicRanges)
+#' library(tfbsDB)
+#' 
+#' # range of TFBS to be loaded from file
+#' grQuery = GRanges("chr1", IRanges(10280, 10410))
+#' 
+#' # example data from package
+#' bedFile = file.path(system.file("inst/extdata/", package = "tfbsDB"), "JASPAR2018_hg19_small.bed.gz")
+#' 
+#' # read from file
+#' gr = readJaspar( grQuery, bedFile )
+#' 
+#' # show TFBS locations
+#' plotTFBSdb( gr )
+#' 
+#' # color locations by p-value of motif match
+#' plotTFBSdb( gr, colorByP=TRUE)
+#' 
+readJaspar = function( grQuery, bedFile, maxP=1e-4 ){
+
+    gr = rtracklayer::import( bedFile, which=grQuery)
+    gr$tf = gr$name
+
+    # convert score to p-value
+    gr$score = 10^(-gr$score/100)
+
+    gr[score(gr) < maxP]
+}
+  
 
 #' Merge overlapping GRanges entries
 #'
@@ -163,6 +205,7 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' @importFrom ggbio autoplot scale_x_sequnit
 #' @importFrom GenomicRanges GRanges seqnames restrict
 #' @importFrom BiocGenerics start end
+#' @importFrom IRanges IRanges
 #' @examples
 #' library(GenomicRanges)
 #' library(tfbsDB)
@@ -171,7 +214,7 @@ merge_same_tf = function( gr, minfrac=0.05, fxn=min ){
 #' grQuery = GRanges("chr1", IRanges(10280, 10410))
 #' 
 #' # example data from package
-#' bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
+#' bedFile = file.path(system.file("inst/extdata/", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 #' 
 #' # read from file
 #' gr = readTFBSdb( grQuery, bedFile )

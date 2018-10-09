@@ -1,11 +1,11 @@
 ---
-title: "tfbsDB: Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO"
+title: "tfbsDB: Store and plot TFBS sites from HOCOMOCO v11 and JASPAR v2018 scored by FIMO"
 author: "[Gabriel Hoffman](http://gabrielhoffman.github.io)"
 date: "`r format(Sys.Date(), '%m/%d/%Y')`"
 abstract: > 
-  Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO
-  tfbsDB 
-  v`r packageVersion("tfbsDB")`<br> <br> 
+  Store and plot TFBS sites from HOCOMOCO and JASPAR scored by FIMO
+  <br> <br> 
+  tfbsDB v`r packageVersion("tfbsDB")`<br> <br> 
 
 output:
   rmarkdown::html_document:
@@ -14,7 +14,7 @@ output:
     toc_depth: 3
     fig_width: 8
 vignette: >
-  %\VignetteIndexEntry{tfbsDB: Store and plot TFBS sites from HOCOMOCO v11 scored by FIMO}
+  %\VignetteIndexEntry{tfbsDB: Store and plot TFBS sites from HOCOMOCO v11 or JASPAR2018 scored by FIMO}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
   %\usepackage[utf8]{inputenc}
@@ -42,6 +42,12 @@ R CMD check tfbsDB
 
 R CMD BiocCheck tfbsDB
 
+
+# example data
+tabix /hpc/users/hoffmg01/psychencode/data/external/tfbsDB/motifs_fimo_search_small.bed.gz chr1:10000-50000 | bgzip > hocomocov11_hg19_example.bed.gz
+tabix /hpc/users/hoffmg01/psychencode/data/external/jaspar2018/JASPAR2018_hg19_all_chr.bed.gz chr1:10000-50000 | awk '{if( $5 > 500) print $0}' | bgzip > JASPAR2018_hg19_example.bed.gz
+tabix -fp bed JASPAR2018_hg19_example.bed.gz
+tabix -fp bed hocomocov11_hg19_example.bed.gz
 --->
 
 ```{r setup, echo=FALSE, results="hide"}
@@ -51,36 +57,36 @@ knitr::opts_chunk$set(tidy=FALSE, cache=TRUE,
 options(width=100)
 ```	
 
+## HOCOMOCO v11
 tfbsDB includes functions to read TFBS from bgzip'd and tabix'd BED file, and plot using ggbio.
 ```{r tfbs_Example}
 library(GenomicRanges)
 library(tfbsDB)
 
 # range of TFBS to be loaded from file
-grQuery = GRanges("chr1", IRanges(10280, 10410))
+grQuery = GRanges("chr1", IRanges(34000,35000))
 
 # example data from package
-bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
+bedFile = file.path(system.file("extdata/", package = "tfbsDB"), "hocomocov11_hg19_example.bed.gz")
 
 # read from file
 gr = readTFBSdb( grQuery, bedFile )
 
 # show TFBS locations
-plotTFBSdb( gr )
+plotTFBSdb( gr, tf_text_size=3 )
 
 # color locations by p-value of motif match
-plotTFBSdb( gr, colorByP=TRUE)
+plotTFBSdb( gr, colorByP=TRUE, tf_text_size=3)
 ```
 
-Plot genes and TFBS
+#### Plot genes and TFBS
 ```{r tfbs_genes, fig.width=6}
 library(ggbio)
 library(tfbsDB)
 library(EnsDb.Hsapiens.v75)
 edb <- EnsDb.Hsapiens.v75
 
-# chr17:41,323,246-41,363,707
-wh <- GRanges("chr17", IRanges(41323246,41333246))
+wh <- GRanges("chr1", IRanges(34000,35000))
 xlim = c(start(wh), end(wh))
 
 # plot Genes
@@ -89,16 +95,42 @@ seqlevelsStyle(wh2) <- "NCBI"
 p.txdb = autoplot(edb, which=wh2, names.expr = "gene_name") + theme_bw(20) 
 
 # plot TFBS
-bedFile = '~/data/tfbsDB/motifs_fimo_search_small.bed.gz'
+# bedFile = '~/data/tfbsDB/motifs_fimo_search_small.bed.gz'
+bedFile = file.path(system.file("extdata/", package = "tfbsDB"), "hocomocov11_hg19_example.bed.gz")
+
 gr = readTFBSdb( wh, bedFile )
-figTFBS = plotTFBSdb( gr[1:10], xlim, colorByP=FALSE, tf_text_size=3) 
+figHOCO = plotTFBSdb( gr, xlim, colorByP=FALSE, tf_text_size=3) 
 
 # Combine
-tracks( Genes = p.txdb, TFBS = figTFBS, label.bg.fill="navy", label.text.color="white", 
+tracks( Genes = p.txdb, HOCOMOCO = figHOCO, label.bg.fill="navy", label.text.color="white", 
   heights=c( 1, .4), padding = unit(-1.9, "lines"), label.width = unit(1.5, "lines"), 
   xlab.height = unit(1, "lines"), xlim=xlim)  + theme(axis.text.x =element_text(size=9)) +  scale_x_sequnit("bp")
 ```
 
+# plot JASPAR TFBS
+```{r plot_jaspar}
+
+# range of TFBS to be loaded from file
+grQuery = GRanges("chr1", IRanges(34000,35000))
+
+# example data from package
+bedFile = file.path(system.file("extdata/", package = "tfbsDB"), "JASPAR2018_hg19_example.bed.gz")
+
+# read from file
+gr = readJaspar( grQuery, bedFile ) 
+
+# show TFBS locations
+fitJASPAR = plotTFBSdb( gr, xlim, colorByP=FALSE, tf_text_size=3) 
+
+# Combine
+tracks( Genes = p.txdb, HOCOMOCO = figHOCO, JASPAR = fitJASPAR, label.bg.fill="navy", label.text.color="white", 
+  heights=c( 1, 0.5, 0.4), padding = unit(-1.9, "lines"), label.width = unit(1.5, "lines"), 
+  xlab.height = unit(1, "lines"), xlim=xlim)  + theme(axis.text.x =element_text(size=9)) +  scale_x_sequnit("bp")
+```
+
+Jaspar BED file is available from http://expdata.cmmt.ubc.ca/JASPAR/downloads/UCSC_tracks/2018/
+
+HOCOMOCO files are described in package README
 
 
 # Session info

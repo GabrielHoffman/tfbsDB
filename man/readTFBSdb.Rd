@@ -29,7 +29,7 @@ library(tfbsDB)
 grQuery = GRanges("chr1", IRanges(10280, 10410))
 
 # example data from package
-bedFile = file.path(system.file("data", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
+bedFile = file.path(system.file("inst/extdata/", package = "tfbsDB"), "motifs_fimo_exmaple.bed.gz")
 
 # read from file
 gr = readTFBSdb( grQuery, bedFile )
