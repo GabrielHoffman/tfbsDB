@@ -270,7 +270,6 @@ plotTFBSdb = function( gr, xlim=c(min(start(gr)), max(end(gr))), tf_text_size=6,
     fig 
 }
 
- # plotTFBSdb( gr,  colorByP=FALSE)
 
 
 
